@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Văn Hiến Thư Quán - Tra cứu tác giả văn học trung đại Việt Nam</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Quicksand:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        :root {
+            --vintage-red: #8e2922;
+            --ink-black: #1a1a1b;
+            --paper-bg: #f5f0e6;
+            --card-bg: rgba(255, 255, 255, 0.65);
+            --accent-gold: #b38b4d;
+            --soft-border: rgba(179, 139, 77, 0.25);
+            --transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: var(--paper-bg);
+            background-image: url('https://www.transparenttextures.com/patterns/p6.png');
+            color: var(--ink-black);
+            margin: 0; padding: 0;
+            line-height: 1.6;
+            scroll-behavior: smooth;
+        }
+
+        .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+
+        header { text-align: center; margin-bottom: 40px; }
+        header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.2rem, 8vw, 4.5rem);
+            color: var(--vintage-red);
+            margin-bottom: 10px;
+        }
+
+        .controls { display: flex; flex-direction: column; align-items: center; gap: 20px; margin-bottom: 40px; }
+        .search-box { width: 100%; max-width: 500px; }
+        input[type="text"] {
+            width: 100%; padding: 12px 20px; 
+            background: rgba(255,255,255,0.8);
+            border: 1px solid var(--soft-border);
+            border-radius: 25px;
+            font-size: 1rem; outline: none;
+            transition: var(--transition);
+            text-align: center;
+        }
+
+        .filter-group { 
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+            gap: 10px; 
+            width: 100%;
+            padding: 10px 5px;
+        }
+
+        .filter-btn {
+            padding: 8px 18px; 
+            border: 1px solid var(--soft-border); 
+            background: white;
+            border-radius: 20px; 
+            cursor: pointer; 
+            font-weight: 600;
+            color: var(--ink-black); 
+            transition: var(--transition);
+            white-space: nowrap; 
+            font-size: 0.9rem;
+            flex-grow: 1;
+            max-width: 150px;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .filter-btn {
+                flex-basis: calc(33.33% - 10px); 
+                padding: 10px 5px;
+                font-size: 0.75rem;
+            }
+        }
+
+        .filter-btn.active { 
+            background: var(--vintage-red); color: #fff; border-color: var(--vintage-red);
+        }
+
+        .author-grid {
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px; min-height: 300px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            padding: 30px; border-radius: 20px;
+            border: 1px solid var(--soft-border);
+            cursor: pointer; transition: var(--transition);
+            position: relative;
+            overflow: hidden; 
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-25deg);
+        }
+
+        @media (hover: hover) {
+            .card:hover {
+                transform: translateY(-10px);
+                background: #ffffff;
+                border-color: var(--vintage-red);
+                box-shadow: 0 15px 30px rgba(142, 41, 34, 0.1);
+            }
+            .card:hover::before { left: 150%; transition: all 0.7s ease; }
+            .card:hover h3 { color: var(--vintage-red); }
+        }
+        
+        .card h3 { font-family: 'Playfair Display', serif; font-size: 1.5rem; margin: 0 0 12px 0; transition: var(--transition); }
+        .card p { border-left: 3px solid var(--vintage-red); padding-left: 12px; margin-top: 15px; font-size: 0.9rem; }
+
+        .era-tag { 
+            background: var(--vintage-red); color: white;
+            padding: 3px 10px; font-size: 0.65rem; font-weight: 700;
+            border-radius: 6px; display: inline-block; margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(26, 26, 27, 0.95); z-index: 9999;
+            backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+            padding: 15px;
+        }
+        .modal.show { opacity: 1; pointer-events: auto; }
+        .modal-content {
+            background: var(--paper-bg); width: 100%; max-width: 900px;
+            border-radius: 25px; display: flex; flex-direction: column;
+            overflow: hidden; transform: translateY(30px); transition: var(--transition);
+            position: relative; max-height: 90vh;
+        }
+        @media (min-width: 768px) { .modal-content { flex-direction: row; height: 550px; } }
+        .modal.show .modal-content { transform: translateY(0); }
+        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 2.2rem; color: var(--accent-gold); cursor: pointer; z-index: 10; }
+        .modal-left { flex: 0 0 250px; background: #eee; }
+        @media (min-width: 768px) { .modal-left { flex: 1; } }
+        .modal-left img { width: 100%; height: 100%; object-fit: cover; }
+        .modal-right { flex: 1.5; padding: 30px; overflow-y: auto; }
+
+        #backToTop {
+            position: fixed; bottom: 25px; right: 25px; width: 45px; height: 45px;
+            background: var(--vintage-red); color: white; border: none;
+            border-radius: 50%; cursor: pointer; display: none; align-items: center; justify-content: center;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Văn Hiến Thư Quán</h1>
+        <p style="letter-spacing: 3px; font-weight: 700; color: var(--accent-gold); font-size: 0.75rem; text-transform: uppercase;">Tra cứu tác giả văn học trung đại Việt Nam</p>
+    </header>
+
+    <div class="controls">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Tìm tác giả hoặc tác phẩm..." onkeyup="handleSearch()">
+        </div>
+        <div class="filter-group" id="filterGroup">
+            <button class="filter-btn active" onclick="setFilter('all', this)">Tất cả</button>
+            <button class="filter-btn" onclick="setFilter('ly-tran', this)">Lý – Trần</button>
+            <button class="filter-btn" onclick="setFilter('le-so', this)">Lê sơ</button>
+            <button class="filter-btn" onclick="setFilter('xvi-xvii', this)">TK XVI – XVII</button>
+            <button class="filter-btn" onclick="setFilter('xviii-xix', this)">TK XVIII – XIX</button>
+            <button class="filter-btn" onclick="setFilter('cuoi-xix', this)">Cuối TK XIX</button>
+        </div>
+    </div>
+
+    <div id="authorGrid" class="author-grid"></div>
+</div>
+
+<div id="authorModal" class="modal" onclick="if(event.target==this) closeModal()">
+    <div class="modal-content">
+        <div class="close-modal" onclick="closeModal()">&times;</div>
+        <div class="modal-left" id="modalImg"></div>
+        <div class="modal-right" id="modalDetail"></div>
+    </div>
+</div>
+
+<button id="backToTop" onclick="scrollToTop()">▲</button>
+
+<script>
+    const data = [
+        { id: 1, era: 'ly-tran', eraName: 'Lý – Trần', name: 'Lý Thường Kiệt', works: 'Nam quốc sơn hà', img: 'https://i.postimg.cc/hf16Bp6r/ltk.jpg', bio: 'Lý Thường Kiệt (1019–1105) là danh tướng kiệt xuất thời Lý, đồng thời là tác giả mở đầu cho dòng văn học yêu nước trung đại Việt Nam. Tác phẩm tiêu biểu Nam quốc sơn hà khẳng định chủ quyền lãnh thổ và ý thức độc lập dân tộc, được xem là bản Tuyên ngôn độc lập đầu tiên của nước ta, đặt nền móng cho tư tưởng yêu nước trong văn học trung đại.' },
+        { id: 2, era: 'ly-tran', eraName: 'Lý – Trần', name: 'Trần Quốc Tuấn', works: 'Hịch tướng sĩ', img: 'https://i.postimg.cc/QKhLQPvc/tranquoctuan.jpg', bio: 'Trần Quốc Tuấn (Trần Hưng Đạo) (1228–1300) là anh hùng dân tộc, nhà quân sự kiệt xuất thời Trần. Tác phẩm Hịch tướng sĩ thể hiện tư tưởng yêu nước sâu sắc, tinh thần trách nhiệm và ý chí quyết chiến quyết thắng, trở thành đỉnh cao của văn chính luận trung đại, tiêu biểu cho hào khí Đông A.' },
+        { id: 3, era: 'ly-tran', eraName: 'Lý – Trần', name: 'Trương Hán Siêu', works: 'Bạch Đằng giang phú', img: 'https://i.postimg.cc/VSfbhLMb/truonghansiu.jpg', bio: 'Trương Hán Siêu (khoảng thế kỉ XIV) là nhà văn, nhà thơ tiêu biểu thời Trần. Tác phẩm Bạch Đằng giang phú của ông kết hợp cảm hứng lịch sử với tư tưởng yêu nước và triết lí nhân sinh sâu sắc, được xem là đỉnh cao của thể phú trong văn học trung đại Việt Nam.' },
+        { id: 4, era: 'ly-tran', eraName: 'Lý – Trần', name: 'Phạm Ngũ Lão', works: 'Thuật hoài (Tỏ lòng)', img: 'https://i.postimg.cc/y3sqm52c/phamngulao.jpg', bio: 'Phạm Ngũ Lão (1255–1320) là danh tướng đời Trần, học trò xuất sắc của Trần Hưng Đạo. Bài thơ Thuật hoài thể hiện lý tưởng sống cao đẹp của kẻ làm trai và tinh thần yêu nước mãnh liệt, tiêu biểu cho hình tượng con người anh hùng trong văn học trung đại Việt Nam.' },
+        { id: 20, era: 'ly-tran', eraName: 'Lý – Trần', name: 'Chu Văn An', works: 'Thất trảm sớ', img: 'https://i.postimg.cc/v4vYs3z4/cna.jpg', bio: 'Chu Văn An (1292–1370), tự Linh Triệt, hiệu Tiều Ẩn, là nhà nho lớn, nhà giáo mẫu mực tiêu biểu của văn học và tư tưởng thời Trần. Ông nổi tiếng thanh liêm, chính trực, cả đời theo đuổi đạo học và lý tưởng giáo hóa con người. Khi triều đình suy thoái, gian thần lộng quyền, ông đã dâng “Thất trảm sớ” xin chém bảy nịnh thần để cứu vận nước, thể hiện khí phách cương trực hiếm có. Tuy sớ không được chấp thuận, Chu Văn An vẫn giữ trọn nhân cách, cáo quan về ở ẩn, tiếp tục dạy học và viết sách. Văn chương của ông không cầu kỳ mà mang giá trị lớn về đạo đức, chính luận và tinh thần trách nhiệm của trí thức trung đại Việt Nam.' },
+        { id: 5, era: 'le-so', eraName: 'Lê sơ', name: 'Nguyễn Trãi', works: 'Bình Ngô đại cáo, Quốc âm thi tập', img: 'https://i.postimg.cc/gjSKmYLF/z7368869626792-55f0d1d54c993de23202f6ef1b799faa.jpg', bio: 'Nguyễn Trãi (1380–1442) là danh nhân văn hóa dân tộc, nhà văn lớn thời Lê sơ. Ông tham gia khởi nghĩa Lam Sơn và có đóng góp quan trọng trong sự nghiệp dựng nước, giữ nước. Sáng tác của Nguyễn Trãi gồm cả chữ Hán và chữ Nôm, tiêu biểu là Bình Ngô đại cáo và Quốc âm thi tập, thể hiện tư tưởng yêu nước, nhân nghĩa và tấm lòng sâu sắc đối với nhân dân.' },
+        { id: 7, era: 'le-so', eraName: 'Lê sơ', name: 'Lê Thánh Tông', works: 'Hồng Đức quốc âm thi tập', img: 'https://i.postimg.cc/jWSr9Gjy/lethton.jpg', bio: 'Lê Thánh Tông (1442–1497) là vị vua anh minh thời Hậu Lê và là nhà văn hóa lớn của dân tộc. Ông sáng lập Hội Tao Đàn, để lại nhiều tác phẩm thơ chữ Hán và chữ Nôm, tiêu biểu là Hồng Đức quốc âm thi tập, góp phần đưa văn học thời Hồng Đức phát triển rực rỡ và khẳng định vị thế của thơ Nôm trong lịch sử văn học.' },
+        { id: 6, era: 'xviii-xix', eraName: 'TK XVIII– XIX', name: 'Đoàn Thị Điểm', works: 'Chinh phụ ngâm (Bản dịch)', img: 'https://i.postimg.cc/7CYxY0s3/dtd.jpg', bio: 'Đoàn Thị Điểm (1705 – 1748), hiệu Hồng Hà, là một trong những nữ thi sĩ tài danh bậc nhất thời Lê Trung hưng. Bà nổi tiếng thông minh, học rộng. Công trình dịch thuật nổi tiếng nhất của bà là "Chinh phụ ngâm khúc" (bản dịch từ nguyên tác chữ Hán của Đặng Trần Côn), được coi là bản dịch Nôm xuất sắc, làm cho tác phẩm trở nên phổ biến và bất hủ. Bản dịch diễn tả tâm trạng cô đơn, sầu não của người chinh phụ một cách tinh tế, làm rung động lòng người. Ngoài ra, bà còn có tập thơ "Hồng Hà thi tập" (hiện còn 25 bài) với những vần thơ trữ tình, sâu lắng. Cuộc đời bà cũng là một câu chuyện về người phụ nữ tài hoa nhưng lận đận đường tình duyên.' },
+        { id: 8, era: 'xvi-xvii', eraName: 'TK XVI – XVII', name: 'Nguyễn Bỉnh Khiêm', works: 'Bạch Vân am thi tập', img: 'https://i.postimg.cc/jdR9Sq8B/nbk.jpg', bio: 'Nguyễn Bỉnh Khiêm (1491 – 1585) tên tự là Hanh Phủ, hiệu Bạch Vân cư sĩ, được người đời suy tôn là "Trạng Trình". Ông là nhà tiên tri nổi tiếng trong lịch sử với những lời sấm truyền (Sấm Trạng Trình) được lưu truyền rộng rãi. Dưới thời nhà Mạc, ông đỗ Trạng nguyên và làm quan, nhưng sau đó về quê mở trường dạy học. Thơ văn của ông thấm đẫm tư tưởng triết lý, giáo huấn đạo đức, ca ngợi thú nhàn dật nơi thôn dã và phê phán thói đời bon chen. Hai tập thơ chính là "Bạch Vân am thi tập" (chữ Hán) và "Bạch Vân quốc ngữ thi" (chữ Nôm). Thơ Nôm của ông trong sáng, giản dị, đưa nhiều thành ngữ, tục ngữ vào thơ một cách tự nhiên, góp phần nâng cao vị thế của chữ Nôm.' },
+        { id: 9, era: 'xviii-xix', eraName: 'TK XVIII – XIX', name: 'Nguyễn Huy Tự', works: 'Hoa Tiên', img: 'https://i.postimg.cc/Y4qpqYnb/nguyenhuytu.jpg', bio: 'Nguyễn Huy Tự (1743 – 1790) là một danh sĩ thời Lê mạt, nổi tiếng với tác phẩm truyện thơ Nôm "Hoa Tiên". Ông xuất thân trong gia đình khoa bảng lớn (cháu nội Nguyễn Huy Nhuận, cha vợ Nguyễn Thiện). "Hoa Tiên" ban đầu có bản gốc chữ Hán của Trung Quốc, nhưng Nguyễn Huy Tự đã sáng tạo lại bằng chữ Nôm, trở thành một trong những truyện thơ Nôm nổi tiếng (cùng với Truyện Kiều, Lục Vân Tiên, Phan Trần). Tác phẩm ca ngợi tình yêu tự do, chung thủy vượt qua mọi trở ngại phong kiến, với nghệ thuật kể chuyện lôi cuốn, ngôn ngữ trong sáng, giàu nhạc điệu. Ông góp phần phát triển thể loại truyện thơ Nôm trong văn học Việt Nam.' },
+        { id: 10, era: 'xviii-xix', eraName: 'TK XVIII – XIX', name: 'Lê Quý Đôn', works: 'Vân đài loại ngữ, Kiến văn tiểu lục', img: 'https://i.postimg.cc/FYxr4DZx/lqd.jpg', bio: 'Lê Quý Đôn (1726 – 1784), tự Doãn Hậu, hiệu Quế Đường, là một nhà bác học lớn nhất của Việt Nam thời phong kiến. Ông là "túi khôn của thời đại", học vấn uyên bác trên nhiều lĩnh vực: lịch sử, địa lý, thơ văn, triết học, kinh tế... Sự nghiệp trước tác đồ sộ với hàng chục bộ sách có giá trị, tiêu biểu như "Vân đài loại ngữ" (bách khoa toàn thư), "Phủ biên tạp lục" (ghi chép về Đàng Trong), "Kiến văn tiểu lục" (ghi chép tản mạn), "Đại Việt thông sử" (sử học). Thơ văn của ông thể hiện trí tuệ sắc sảo, tinh thần yêu nước và niềm tự hào dân tộc. Ông để lại dấu ấn không thể phai mờ trong lịch sử văn hóa và học thuật nước nhà.' },
+        { id: 11, era: 'xviii-xix', eraName: 'TK XVIII – XIX', name: 'Nguyễn Du', works: 'Truyện Kiều', img: 'https://i.postimg.cc/pm1j5M35/nguyen-du.jpg', bio: 'Đại thi hào Nguyễn Du (1765 – 1820), tự Tố Như, hiệu Thanh Hiên, là một thiên tài văn chương, danh nhân văn hóa thế giới. Tác phẩm của ông đã đạt đến đỉnh cao chói lọi của văn học trung đại Việt Nam. Cuộc đời ông trải qua nhiều biến cố, từ quý tộc phong kiến sa sút đến sống lưu lạc, điều đó giúp ông thấu hiểu nỗi đau và thân phận con người. Kiệt tác "Truyện Kiều" (Đoạn trường tân thanh) là một tuyệt phẩm bằng chữ Nôm, dựa trên cốt truyện Kim Vân Kiều truyện của Thanh Tâm Tài Nhân (Trung Quốc) nhưng được sáng tạo tài tình. Với 3.254 câu thơ lục bát, tác phẩm là bức tranh hiện thực và bi kịch về thân phận con người, đặc biệt là người phụ nữ trong xã hội phong kiến. Ngoài ra, ông còn có các tập thơ chữ Hán sâu sắc như "Thanh Hiên thi tập", "Nam trung tạp ngâm", "Bắc hành tạp lục", thể hiện tấm lòng nhân đạo bao la.' },
+        { id: 12, era: 'xviii-xix', eraName: 'TK XVIII – XIX', name: 'Hồ Xuân Hương', works: 'Bánh trôi nước, Tự tình', img: 'https://i.postimg.cc/qNZK6HWN/hxh.jpg', bio: 'Hồ Xuân Hương là nữ sĩ nổi tiếng cuối thế kỉ XVIII – đầu XIX, được mệnh danh là “Bà chúa thơ Nôm”. Thơ của bà phản ánh thân phận người phụ nữ trong xã hội phong kiến, đồng thời bộc lộ cá tính mạnh mẽ và tinh thần phản kháng lễ giáo. Các tác phẩm như Bánh trôi nước, Tự tình vừa trào phúng vừa giàu cảm xúc nhân văn' },
+        { id: 13, era: 'xviii-xix', eraName: 'TK XVIII – XIX', name: 'Đặng Trần Côn', works: 'Chinh phụ ngâm (Hán)', img: 'https://i.postimg.cc/nsFQWc77/dtc.jpg', bio: 'Đặng Trần Côn (khoảng 1710 – 1745) là nhà văn, nhà thơ thời Lê trung hưng, tác giả của Chinh phụ ngâm (bản chữ Hán). Tác phẩm thể hiện sâu sắc giá trị nhân đạo khi cảm thương nỗi đau và khát vọng hạnh phúc của người phụ nữ trong chiến tranh, góp phần mở đường cho khuynh hướng nhân đạo trong văn học trung đại Việt Nam.' },
+        { id: 14, era: 'xviii-xix', eraName: 'TK XVIII – XIX', name: 'Phan Huy Ích', works: 'Chinh phụ ngâm (Nôm)', img: 'https://i.postimg.cc/gxqZ46wR/phanhuyich.jpg', bio: 'Phan Huy Ích (1751 – 1822) là nhà thơ, nhà văn và dịch giả tiêu biểu của văn học trung đại Việt Nam cuối thế kỉ XVIII – đầu XIX. Ông được biết đến với bản dịch Chinh phụ ngâm chữ Nôm, góp phần lan tỏa giá trị nhân đạo của tác phẩm và thể hiện phong cách văn chương trí tuệ, điềm đạm của tầng lớp trí thức đương thời.' },
+        { id: 15, era: 'xviii-xix', eraName: 'TK XVIII – XIX', name: 'Lê Hữu Trác', works: 'Thượng kinh kí sự', img: 'https://i.postimg.cc/LJB1vZqd/lehuutrac.jpg', bio: 'Lê Hữu Trác (1724 – 1791), hiệu Hải Thượng Lãn Ông, là danh y lớn đồng thời là nhà văn của văn học trung đại Việt Nam. Qua tác phẩm Thượng kinh kí sự, ông thể hiện tư tưởng nhân đạo, đề cao y đức và phản ánh chân thực đời sống xã hội, góp phần làm phong phú diện mạo văn học cuối thời trung đại.' },
+        { id: 16, era: 'xviii-xix', eraName: 'TK XVIII – XIX', name: 'Nguyễn Gia Thiều', works: 'Cung oán ngâm khúc', img: 'https://i.postimg.cc/qzxSTjS1/nguyengiathieu.jpg', bio: 'Nguyễn Gia Thiều (1741–1798) là nhà thơ lớn cuối thế kỉ XVIII, sống trong bối cảnh xã hội phong kiến suy thoái. Tác phẩm Cung oán ngâm khúc thể hiện sâu sắc nỗi đau thân phận con người, đặc biệt là người phụ nữ, đánh dấu bước phát triển nổi bật của khuynh hướng nhân đạo trong văn học trung đại.' },
+        { id: 17, era: 'xviii-xix', eraName: 'TK XVIII – XIX', name: 'Phạm Đình Hổ', works: 'Vũ trung tùy bút', img: 'https://i.postimg.cc/zLXJXK2m/pdh.jpg', bio: 'Phạm Đình Hổ (1768 – 1839) là nhà văn, nhà nho sống vào giai đoạn cuối Lê – đầu Nguyễn, thời kỳ xã hội phong kiến suy tàn. Ông nổi tiếng với tập tùy bút “Vũ trung tùy bút”, ghi chép những câu chuyện đời thường, phong tục, sinh hoạt văn hóa và những biểu hiện suy đồi của xã hội đương thời. Với lối viết chân thực, giàu quan sát và giọng điệu trầm tĩnh, tác phẩm vừa có giá trị văn học vừa là tư liệu lịch sử – văn hóa quý giá. Qua đó, Phạm Đình Hổ bộc lộ nỗi hoài cổ, tiếc nuối quá khứ và thái độ phê phán nhẹ nhàng nhưng sâu sắc đối với xã hội phong kiến đang trên đà tan rã.' },
+        { id: 22, era: 'xviii-xix', eraName: 'TK XVIII – XIX', name: 'Ngô Gia Văn Phái', works: 'Hoàng Lê nhất thống chí', img: 'https://i.postimg.cc/WDb2bgWn/ngogiavanphai.jpg', bio: 'Ngô Gia Văn Phái là nhóm tác giả thuộc dòng họ Ngô Thì ở Tả Thanh Oai (Hà Nội), tiêu biểu cho văn học thế kỷ XVIII – XIX. Thành viên nổi bật gồm Ngô Thì Chí, Ngô Thì Du, Ngô Thì Nhậm… Tác phẩm xuất sắc nhất của nhóm là “Hoàng Lê nhất thống chí” – một tiểu thuyết lịch sử viết bằng chữ Hán. Tác phẩm phản ánh chân thực biến động lịch sử cuối Lê – Trịnh, sự suy vong của triều đại phong kiến và sự nổi lên của phong trào Tây Sơn. Với lối viết sinh động, khách quan, giàu chất tự sự, Hoàng Lê nhất thống chí được xem là đỉnh cao của văn xuôi tự sự lịch sử trong văn học trung đại Việt Nam.' },
+        { id: 23, era: 'xviii-xix', eraName: 'TK XVIII – XIX', name: 'Ngô Thì Nhậm', works: 'Bang giao hảo thoại', img: 'https://i.postimg.cc/XZ7V7dH2/nthinham.jpg', bio: 'Ngô Thì Nhậm (1746–1803), tự Hy Doãn, hiệu Đạt Hiên, là một danh sĩ lớn cuối thời Lê – Tây Sơn. Ông là nhà thơ, nhà tư tưởng, nhà chính trị và ngoại giao tài ba. Trải qua nhiều biến động lịch sử, Ngô Thì Nhậm có cái nhìn sâu sắc về thời thế và vận mệnh dân tộc. Các tác phẩm như “Bang giao hảo thoại”, thơ chữ Hán và trước tác Phật học thể hiện tư duy uyên bác, tinh thần nhập thế và khát vọng hòa hợp dân tộc. Văn chương của ông mang đậm tính trí tuệ, triết lý và ý thức trách nhiệm của trí thức trước lịch sử, góp phần làm phong phú diện mạo văn học trung đại.' },
+        { id: 18, era: 'cuoi-xix', eraName: 'Cuối TK XIX', name: 'Cao Bá Quát', works: 'Chu Thần di tập', img: 'https://i.postimg.cc/NKxscp4j/cbq.jpg', bio: 'Cao Bá Quát (1809 – 1855) là một nhà thơ lớn, một trí thức có cá tính mạnh mẽ và tư tưởng phản kháng hiếm có trong văn học trung đại. Ông nổi tiếng thông minh, tài hoa nhưng lận đận đường khoa cử và quan trường. Thơ văn Cao Bá Quát thể hiện cái tôi ngông nghênh, ngang tàng, dám đối đầu với trật tự phong kiến mục nát. Ông phê phán gay gắt lễ giáo giả dối, xã hội bất công và bày tỏ khát vọng tự do mãnh liệt. Cuộc đời ông kết thúc trong cuộc khởi nghĩa Mỹ Lương chống triều Nguyễn. Cao Bá Quát được xem là người mở đường cho tinh thần cá nhân và ý thức phản kháng, báo hiệu sự chuyển biến của văn học Việt Nam sang thời cận đại.' },
+        { id: 19, era: 'cuoi-xix', eraName: 'Cuối TK XIX', name: 'Nguyễn Đình Chiểu', works: 'Văn tế nghĩa sĩ Cần Giuộc', img: 'https://i.postimg.cc/5XkzQWDx/ndc.jpg', bio: 'Nguyễn Đình Chiểu, tự Mạnh Trạch, hiệu Trọng Phủ, Hối Trai, (1822 – 1888) là ngôi sao sáng của văn học yêu nước Nam Bộ thế kỷ XIX. Bị mù lòa giữa tuổi thanh xuân nhưng ông vẫn mở trường dạy học, làm thuốc cứu người và sáng tác văn thơ. Các tác phẩm của ông thấm nhuần đạo lý nhân nghĩa và tinh thần bất khuất chống thực dân Pháp xâm lược. "Lục Vân Tiên" là truyện thơ Nôm nổi tiếng, ca ngợi những mẫu người trung nghĩa, đề cao đạo đức nhân hậu. "Văn tế nghĩa sĩ Cần Giuộc" là một "khúc ca của những người thất thế nhưng vẫn hiên ngang" (Phạm Văn Đồng), dựng tượng đài bất tử về người nông dân nghĩa sĩ. "Chạy giặc", "Xúc cảnh"... là những bài thơ yêu nước đau đớn, căm hờn.' },
+        { id: 21, era: 'cuoi-xix', eraName: 'Cuối TK XIX', name: 'Nguyễn Khuyến', works: 'Chùm thơ thu (Thu điếu, Thu ẩm, Thu vịnh)', img: 'https://i.postimg.cc/w1kqp0Vf/ngk.jpg', bio: 'Nguyễn Khuyến (1835–1909), tự Miễn Chi, hiệu Quế Sơn, là nhà thơ lớn cuối thế kỷ XIX, tiêu biểu cho văn học trung đại giai đoạn suy tàn. Ông đỗ đầu cả ba kỳ thi Hương, Hội, Đình nên được gọi là Tam nguyên Yên Đổ. Chứng kiến đất nước rơi vào tay thực dân Pháp, Nguyễn Khuyến cáo quan về quê, sống cuộc đời thanh bạch, gửi gắm tâm sự qua thơ ca. Thơ Nôm của ông, đặc biệt là chùm thơ thu (Thu điếu, Thu ẩm, Thu vịnh), vừa trong sáng, tinh tế, vừa thấm đượm nỗi buồn thời thế và lòng yêu nước thầm kín. Văn chương Nguyễn Khuyến thể hiện tấm lòng của một nhà nho yêu nước bất lực trước thời cuộc, mang vẻ đẹp đằm sâu, nhân hậu.' },
+        { id: 24, era: 'cuoi-xix', eraName: 'Cuối TK XIX', name: 'Phan Bội Châu', works: 'Hải ngoại huyết thư, Ngục trung thư', img: 'https://i.postimg.cc/Jy414Z6v/pbc.jpg', bio: 'Phan Bội Châu (1867–1940), hiệu Sào Nam, là nhà yêu nước lớn, nhà văn chính luận tiêu biểu trong giai đoạn cuối văn học trung đại chuyển sang cận đại. Ông dùng văn chương làm vũ khí đấu tranh, khơi dậy lòng yêu nước và ý thức dân tộc. Các tác phẩm như “Hải ngoại huyết thư”, “Ngục trung thư” thể hiện tư tưởng cách mạng mạnh mẽ, tinh thần hy sinh vì độc lập dân tộc. Văn chương Phan Bội Châu không chú trọng nghệ thuật trau chuốt mà giàu cảm xúc, lập luận đanh thép, có sức cổ vũ lớn. Ông được xem là cầu nối quan trọng giữa văn học trung đại yêu nước và văn học cách mạng hiện đại Việt Nam.' },
+		{ id: 25, era: 'cuoi-xix', eraName: 'Cuối TK XIX', name: 'Trần Tế Xương (Tú Xương)', works: 'Thương vợ, Vịnh khoa thi Hương', img: 'https://i.postimg.cc/WF2Ng9ZM/tx.jpg', bio: 'Trần Tế Xương (1870–1907), còn gọi là Tú Xương, là nhà thơ trào phúng tiêu biểu cuối thế kỷ XIX – đầu thế kỷ XX. Sống trong xã hội thực dân nửa phong kiến, thi cử lận đận, ông có cái nhìn sắc sảo và tỉnh táo về thời cuộc. Thơ Tú Xương chủ yếu viết bằng chữ Nôm, mang giọng điệu châm biếm sâu cay, phê phán xã hội phong kiến suy tàn và tầng lớp trí thức nửa mùa. Bên cạnh tiếng cười đả kích, thơ ông còn thể hiện tấm lòng nhân hậu, đặc biệt là tình cảm chân thành dành cho người vợ tảo tần, góp phần làm phong phú diện mạo văn học cuối trung đại Việt Nam.' },
+		{ id: 26, era: 'xvi-xvii', eraName: 'TK XVI – XVII', name: 'Nguyễn Dữ', works: 'Truyền kỳ mạn lục', img: 'https://i.postimg.cc/bDzyk6nW/nguyendu.png', bio: 'Nguyễn Dữ là nhà văn tiêu biểu thế kỷ XVI, nổi tiếng với tập truyện chữ Hán Truyền kỳ mạn lục. Tác phẩm phản ánh hiện thực xã hội phong kiến nhiều bất công, đồng thời thể hiện tinh thần nhân đạo, bênh vực con người lương thiện. Với giá trị nội dung và nghệ thuật đặc sắc, Truyền kỳ mạn lục được xem là đỉnh cao của thể loại truyền kỳ trong văn học trung đại Việt Nam.' },
+		{ id: 27, era: 'xvi-xvii', eraName: 'TK XVI – XVII', name: 'Phùng Khắc Khoan', works: 'Ngôn chí thi tập', img: 'https://i.postimg.cc/ftwzmHdq/Phung-Khac-Khoan2.jpg', bio: 'Phùng Khắc Khoan (1528–1613), hiệu Trạng Bùng, là danh sĩ lớn cuối thế kỷ XVI – đầu thế kỷ XVII. Ông là nhà thơ, nhà ngoại giao tài ba, có đóng góp quan trọng cho văn học chữ Hán Việt Nam. Thơ văn Phùng Khắc Khoan thể hiện tinh thần yêu nước, ý thức trách nhiệm của trí thức trước thời cuộc và được đánh giá cao về giá trị tư tưởng.' }
+    ];
+
+    let currentCat = 'all';
+
+    function render() {
+        const grid = document.getElementById('authorGrid');
+        const query = document.getElementById('searchInput').value.toLowerCase().trim();
+        const filtered = data.filter(a => (currentCat === 'all' || a.era === currentCat) && 
+            (a.name.toLowerCase().includes(query) || a.works.toLowerCase().includes(query)));
+
+        filtered.sort((a, b) => a.id - b.id);
+        if (filtered.length === 0) {
+            grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #888;">Không tìm thấy kết quả phù hợp...</div>`;
+            return;
+        }
+
+        grid.innerHTML = filtered.map(a => `
+            <div class="card" onclick="openModal(${a.id})">
+                <span class="era-tag">${a.eraName}</span>
+                <h3>${a.name}</h3>
+                <p><strong>Tác phẩm tiêu biểu:</strong><br>${a.works}</p>
+            </div>
+        `).join('');
+    }
+
+    function handleSearch() { render(); }
+    function setFilter(cat, btn) {
+        currentCat = cat;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        render();
+    }
+
+    function openModal(id) {
+        const a = data.find(x => x.id === id);
+        document.getElementById('modalImg').innerHTML = `<img src="${a.img}" alt="${a.name}" onerror="this.src='https://via.placeholder.com/400x600?text=${a.name}'">`;
+        document.getElementById('modalDetail').innerHTML = `
+            <span class="era-tag">${a.eraName}</span>
+            <h2 style="font-family:'Playfair Display', serif; margin:10px 0; color:var(--vintage-red)">${a.name}</h2>
+            <div style="font-size: 1rem; text-align:justify; line-height: 1.7;">${a.bio}</div>
+            <p style="margin-top:20px; font-weight:700; color:var(--accent-gold);">Tác phẩm: ${a.works}</p>
+        `;
+        document.getElementById('authorModal').classList.add('show');
+        document.body.style.overflow = "hidden";
+    }
+
+    function closeModal() {
+        document.getElementById('authorModal').classList.remove('show');
+        document.body.style.overflow = "auto";
+    }
+
+    window.onscroll = function() {
+        const btn = document.getElementById("backToTop");
+        btn.style.display = (window.scrollY > 300) ? "flex" : "none";
+    };
+    function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    render();
+</script>
+</body>
+</html>
